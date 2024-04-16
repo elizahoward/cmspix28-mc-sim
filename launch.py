@@ -17,10 +17,7 @@ def run_commands(commands):
     for command in commands:
         print(command)
         if "pixelav" in command[0]:
-            # cwd = os.getcwd()
-            # os.chdir(command[0])
             subprocess.run(command[1:], cwd=command[0])
-            # os.chdir(cwd)
         else:
             subprocess.run(command)
     
@@ -35,9 +32,10 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="./pixelav/")
     ops = parser.parse_args()
 
-    # check if outdir exists
-    if not os.path.isdir(ops.outDir):
-        os.makedirs(ops.outDir)
+    # get absolute path and check if outdir exists
+    outDir = os.path.abspath(ops.outDir)
+    if not os.path.isdir(outDir):
+        os.makedirs(outDir)
 
     # ./minbias.exe <outFileName> <maxEvents> <pTHatMin> <pTHatMax>
     path_to_executable = "./bin/minbias.exe"
@@ -50,7 +48,7 @@ if __name__ == "__main__":
         pTHatMin = round(pTHatMin, 3)
         pTHatMax = round(pTHatMax, 3)
         # format
-        outFileName = os.path.join(ops.outDir, f"minbias_{pTHatMin:.2f}_{pTHatMax:.2f}_GeV")
+        outFileName = os.path.join(outDir, f"minbias_{pTHatMin:.2f}_{pTHatMax:.2f}_GeV")
         # options_list.append([outFileName, maxEvents, str(pTHatMin), str(pTHatMax)])
         # print(options_list[-1])
 
@@ -63,8 +61,8 @@ if __name__ == "__main__":
         delphes = ["/opt/delphes/DelphesHepMC3", card, outFileName+".root", outFileName+".hepmc"]
 
         # delphes to track list for pixelAV
-        # python pixelav/delphesRootToPixelAvTrackList.py -i outdir/cmsMatch/10/minbias_0.30_0.40_GeV.root -o test.txt
-        trackList = ["python3", "pixelav/delphesRootToPixelAvTrackList.py", "-i", f"{outFileName}.root", "-o", f"{outFileName}.txt"]
+        # python utils/delphesRootToPixelAvTrackList.py -i outdir/cmsMatch/10/minbias_0.30_0.40_GeV.root -o test.txt
+        trackList = ["python3", "utils/delphesRootToPixelAvTrackList.py", "-i", f"{outFileName}.root", "-o", f"{outFileName}.txt"]
 
         # pixelAV
         # ../../pixelav/bin/ppixelav2_list_trkpy_n_2f.exe 1 outdir/cmsMatch/11/minbias_0.40_0.50_GeV.txt temp/minbias_0.40_0.50_GeV.out temp/seedfile
