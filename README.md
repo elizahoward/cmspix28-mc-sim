@@ -23,3 +23,11 @@ make
 make all
 ./bin/minbias.exe cards/minbias.cmnd myTree.root 100
 ```
+
+# with the docker images
+```
+docker run -it -v /local/d1/badea:/local/d1/badea local/my-image # open with binding
+cd /local/d1/badea/tracker/cmspix28-mc-sim
+make
+python launch.py -o temp -n 100
+```

@@ -1,0 +1,6 @@
+# folders
+bin/
+temp/
+
+# types
+*.hepmc
