@@ -26,8 +26,12 @@ make all
 
 # with the docker images
 ```
+git clone --recursive
 docker run -it -v /local/d1/badea:/local/d1/badea local/my-image # open with binding
-cd /local/d1/badea/tracker/cmspix28-mc-sim
+cd /local/d1/badea/tracker/cmspix28-mc-sim/pixelav
+mkdir bin
+gcc ppixelav2_list_trkpy_n_2f.c -o ./bin/ppixelav2_list_trkpy_n_2f.exe -lm -O2
+cd ..
 make
 python launch.py -o temp -n 100
 ```
