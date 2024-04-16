@@ -1,0 +1,3 @@
+[submodule "pixelav"]
+	path = pixelav
+	url = https://github.com/badeaa3/pixelav

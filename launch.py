@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--outDir", help="Output directory", default="./")
     parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=4, type=int)
     parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default=1000, type=str)
-    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="../../pixelav/")
+    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="./pixelav/")
     ops = parser.parse_args()
 
     # check if outdir exists
