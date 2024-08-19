@@ -56,8 +56,10 @@ if __name__ == "__main__":
         
         # track properties
         # based on the image here https://github.com/kdp-lab/pixelav/blob/ppixelav2v2/ppixelav2_operating_inst.pdf
-        cota = 1./np.tan(temp["Track.PhiOuter"]) # phi = alpha - pi -> cot(alpha) = cot(phi+pi) = cot(phi) = 1/tan(phi)
-        cotb = 1./np.tan(np.arccos(np.tanh(temp["Track.EtaOuter"]))) # should be theta but need to get get it # theta = beta - pi -> cot(beta) = cot(theta+pi) = cot(theta) = 1/tan(theta)
+        # phi = alpha - pi -> cot(alpha) = cot(phi+pi) = cot(phi) = 1/tan(phi)
+        cota = 1./np.tan(temp["Track.PhiOuter"]) 
+        # theta = beta - pi -> cot(beta) = cot(theta+pi) = cot(theta) = 1/tan(theta) where theta = arccos(tanh(eta))
+        cotb = 1./np.tan(np.arccos(np.tanh(temp["Track.EtaOuter"]))) 
         p = temp["Track.P"] # [GeV]
         flp = np.zeros(p.shape)
         localx = temp["Track.XOuter"] # [mm]

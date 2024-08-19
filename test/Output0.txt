@@ -7,11 +7,10 @@ cot(β) = cot(cos⁻¹(tanh(η))+π) = -3.5588798915972384
 Track list information:
 cota: -0.04611542731520059, cotb: -3.5588798915972406, p: 2.8114371299743652, localx: -1.381995439529419, localy: 29.968151092529297, pT: 0.7606396675109863
 
-Inside pixel AV simulation:
-pxvec[0]: -159.034103, pxvec[1]: 1.200492, pxvec[2]: 100.000000, pxvec[3]: 0.000000 
-
-Values being written to .out file: 
--159.034103 1.200492 100.000000 2.706410 0.035073 -0.760467 43892 29.968149 0.760640 
+Info that should be sent to .out file:
+vect[0]: -159.034103, vect[1]: 1.200492, vect[2]: 100.000000, 
+vect[3]: 2.706410, vect[4]: 0.035073, vect[5]: -0.760467, 
+neh: 43892, modytrack: 29.968149, pttrack: 0.760640 
 
 Data written to parquet labels file:
 x-entry: -159.034103, y-entry: 1.200492, z-entry: 100.0, n_x: 2.70641, n_y: 0.035073, n_z: -0.760467, number_eh_pairs: 43892.0, 

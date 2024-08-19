@@ -73,8 +73,12 @@ if __name__ == "__main__":
         # Write parquet file
         parquet = ["python3", f"{semiparametricDir}/processing/datagen.py", "-f", f"{tag}.out", "-t", tag, "-d", outDir, "-p", printFile]
         
+        # Make some plots
+        makePlots = ["python3", f"{semiparametricDir}/plotting/makePlots.py", "-t", tag, "-d", outDir]
+
+
         # commands
-        commands= [[(writeRootFile, trackList, pixelAV, parquet),]] # weird formatting is because pool expects a tuple at input
+        commands= [[(writeRootFile, trackList, pixelAV, parquet, makePlots),]] # weird formatting is because pool expects a tuple at input
         
         # List of CPU cores to use for parallel execution
         num_cores = multiprocessing.cpu_count() if ops.ncpu == -1 else ops.ncpu
