@@ -57,17 +57,52 @@ if __name__ == "__main__":
         # track properties
         # based on the image here https://github.com/kdp-lab/pixelav/blob/ppixelav2v2/ppixelav2_operating_inst.pdf
         # phi = alpha - pi -> cot(alpha) = cot(phi+pi) = cot(phi) = 1/tan(phi)
-        cota = 1./np.tan(temp["Track.PhiOuter"]) 
+        #cota = 1./np.tan(temp["Track.PhiOuter"]) 
         # theta = beta - pi -> cot(beta) = cot(theta+pi) = cot(theta) = 1/tan(theta) where theta = arccos(tanh(eta))
-        cotb = 1./np.tan(np.arccos(np.tanh(temp["Track.EtaOuter"]))) 
+        #cotb = 1./np.tan(np.arccos(np.tanh(temp["Track.EtaOuter"]))) 
+        
+        # Randomly generate beta between minimum and maximum allowed values
+        betamin = 1.31272
+        betamax = 1.82887
+        beta = np.random.uniform(betamin, betamax,size=len(temp["Track.PID"]))
+        
+        # Determine yentry and ylocal based on beta
+        yentry = 30/np.tan(beta)
+        localy=yentry+0.08125
+
+        # Get angle of hit location with respect to barrel
+        gamma0 = np.arctan2(temp["Track.YOuter"],temp["Track.XOuter"])
+
+        # Get angle of sensor center with respect to barrel
+        gamma=gamma0+yentry/30
+
+        # Define unit vector of track at tracker edge with respect to barrel
+        theta=2*np.arctan(np.exp(-temp["Track.EtaOuter"]))
+        phi=temp["Track.PhiOuter"]
+        x=np.sin(theta)*np.cos(phi)
+        y=np.sin(theta)*np.sin(phi)
+        z=np.cos(theta)
+
+        # Transform into rotated coordinate system (sensor coordinate system sort of)
+        xp=x*np.cos(gamma)+y*np.sin(gamma)
+        yp=-x*np.sin(gamma)+y*np.cos(gamma)
+
+        alpha=np.arctan2(np.sqrt(xp**2+yp**2),z)
+        
         p = temp["Track.P"] # [GeV]
+
+        # zero: unflipped, 1: flipped
         flp = np.zeros(p.shape)
+        
+        # Since we are unflipped, we must adjust alpha and beta 
+        cotb = 1./np.tan(2*np.pi-beta)
+        cota = 1./np.tan(alpha+np.pi)
+
         localx = temp["Track.XOuter"] # [mm]
-        localy = temp["Track.YOuter"] # [mm]
+        
         pT = temp["Track.PT"] # [GeV]
         tracks.append([cota, cotb, p, flp, localx, localy, pT])
 
-    
     tracks = np.concatenate(tracks,-1).T
     print("Tracks shape: ", tracks.shape)
     if ops.printFile != "":
