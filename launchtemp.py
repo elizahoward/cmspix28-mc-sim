@@ -26,10 +26,10 @@ if __name__ == "__main__":
 
     # user options
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-o", "--outDir", help="Output directory", default="./temp2")
+    parser.add_argument("-o", "--outDir", help="Output directory", default="./temp3")
     parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=4, type=int)
     parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default=1000, type=str)
-    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="./pixelav/")
+    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="~/pixelav/")
     parser.add_argument("-s", "--semiparametricDir", help="semiparametric directory", default="~/semiparametric")
     ops = parser.parse_args()
 
@@ -48,6 +48,8 @@ if __name__ == "__main__":
 
     # get absolute path for semiparametric directory
     semiparametricDir = os.path.expanduser(ops.semiparametricDir)
+    pixelAVdir = os.path.expanduser(ops.pixelAVdir)
+
 
 
     # ./minbias.exe <outFileName> <maxEvents> <pTHatMin> <pTHatMax>
@@ -76,7 +78,7 @@ if __name__ == "__main__":
 
         # pixelAV
         # ../../pixelav/bin/ppixelav2_list_trkpy_n_2f.exe 1 outdir/cmsMatch/11/minbias_0.40_0.50_GeV.txt temp/minbias_0.40_0.50_GeV.out temp/seedfile
-        pixelAV = [ops.pixelAVdir, "./bin/ppixelav2_list_trkpy_n_2f.exe", "1", f"{outFileName}.txt", f"{outFileName}.out", f"{outFileName}_seed"]
+        pixelAV = [pixelAVdir, "./bin/ppixelav2_list_trkpy_n_2f.exe", "1", f"{outFileName}.txt", f"{outFileName}.out", f"{outFileName}_seed"]
         
         # Write parquet file
         parquet = ["python3", f"{semiparametricDir}/processing/datagen.py", "-f", f"{tag}.out", "-t", tag, "-d", outDir]

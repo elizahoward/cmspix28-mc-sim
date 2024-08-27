@@ -12,6 +12,23 @@ import numpy as np
 import os
 import time
 
+def getBetaNegative(y0, R):
+    h=30
+    yc=(h**2 + y0**2 - (h**2*y0**2)/(h**2 + y0**2) - y0**4/(h**2 + y0**2) +  \
+             y0*np.sqrt(-h**2*(h**2 + y0**2)*(h**2 - 4*R**2 + y0**2))/(h**2 + y0**2))/(2*h)
+    beta = np.arccos((yc-h)/R)
+    return beta
+
+def getBetaPositive(y0, R):
+    h=30
+    yc=(h**2 + y0**2 - (h**2*y0**2)/(h**2 + y0**2) - y0**4/(h**2 + y0**2) -  \
+             y0*np.sqrt(-h**2*(h**2 + y0**2)*(h**2 - 4*R**2 + y0**2))/(h**2 + y0**2))/(2*h)
+    beta = np.arccos((h-yc)/R)
+    return beta
+
+def getBeta(y0, R, q):
+    return np.where(q<0, getBetaNegative(y0, R), getBetaPositive(y0, R))
+
 if __name__ == "__main__":
     
     # user options
@@ -37,7 +54,7 @@ if __name__ == "__main__":
     tree = "Delphes"
     delphes_track_pt = []
     delphes_particle_pt = []
-    branches = ["Track.PID", "Track.PT", "Track.P", "Track.EtaOuter", "Track.PhiOuter", "Track.XOuter", "Track.YOuter"]
+    branches = ["Track.PID", "Track.Charge", "Track.PT", "Track.P", "Track.EtaOuter", "Track.PhiOuter", "Track.XOuter", "Track.YOuter"]
     pionPID = 211 # plus/minus
 
     # for array in uproot.iterate(f"{files}:{tree}", branches):
@@ -61,13 +78,16 @@ if __name__ == "__main__":
         # theta = beta - pi -> cot(beta) = cot(theta+pi) = cot(theta) = 1/tan(theta) where theta = arccos(tanh(eta))
         #cotb = 1./np.tan(np.arccos(np.tanh(temp["Track.EtaOuter"]))) 
         
-        # Randomly generate beta between minimum and maximum allowed values
-        betamin = 1.31272
-        betamax = 1.82887
-        beta = np.random.uniform(betamin, betamax,size=len(temp["Track.PID"]))
-        
-        # Determine yentry and ylocal based on beta
-        yentry = 30/np.tan(beta)
+        # Randomly generate the y-entry point between minimum and maximum allowed values
+        yentrymin=-16/2+0.08125
+        yentrymax=16/2-0.08125
+        yentry=np.random.uniform(yentrymin, yentrymax,size=len(temp["Track.PID"]))
+
+        # Determine beta from y-entry
+        R = temp["Track.PT"]*5.36/(np.abs(temp["Track.Charge"])*1.60217663*3.8)*1000
+        beta = getBeta(yentry, R, temp["Track.Charge"])
+
+        # Shift yentry to ylocal
         localy=yentry+0.08125
 
         # Get angle of hit location with respect to barrel

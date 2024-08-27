@@ -4,15 +4,3 @@ PID: 211, phi: 1.6168791055679321, eta: -1.981771469116211, p: 2.811437129974365
 cot(α) = cot(ϕ+π) = -0.04611542731520047
 cot(β) = cot(cos⁻¹(tanh(η))+π) = -3.5588798915972384
 
-Track list information:
-cota: -3.5588798915972384, cotb: 0.1057247751251488, p: 2.8114371299743652, localx: -1.381995439529419, localy: -3.0904932537544565, pT: 0.7606396675109863
-
-Info that should be sent to .out file:
-vect[0]: -159.034103, vect[1]: 8.792492, vect[2]: 100.000000, 
-vect[3]: 2.705514, vect[4]: -0.080370, vect[5]: -0.760215, 
-neh: 43892, modytrack: -3.090490, pttrack: 0.760640 
-
-Data written to parquet labels file:
-x-entry: -159.034103, y-entry: 8.792492, z-entry: 100.0, n_x: 2.705514, n_y: -0.08037, n_z: -0.760215, number_eh_pairs: 43892.0, 
-y-local: -3.09049, pt: 0.76064, cotAlpha: -3.5588800536690277, cotBeta: 0.1057200923422979, x-midplane: 18.909899683451385, y-midplane: 3.506487382885104
-√(nx²+ny²+nz²) = 2.8114395222591932
