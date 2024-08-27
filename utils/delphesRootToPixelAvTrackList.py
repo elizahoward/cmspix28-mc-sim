@@ -12,15 +12,16 @@ import numpy as np
 import os
 import time
 
+# Barrel radius
+h=30
+
 def getBetaNegative(y0, R):
-    h=30
     yc=(h**2 + y0**2 - (h**2*y0**2)/(h**2 + y0**2) - y0**4/(h**2 + y0**2) +  \
              y0*np.sqrt(-h**2*(h**2 + y0**2)*(h**2 - 4*R**2 + y0**2))/(h**2 + y0**2))/(2*h)
     beta = np.arccos((yc-h)/R)
     return beta
 
 def getBetaPositive(y0, R):
-    h=30
     yc=(h**2 + y0**2 - (h**2*y0**2)/(h**2 + y0**2) - y0**4/(h**2 + y0**2) -  \
              y0*np.sqrt(-h**2*(h**2 + y0**2)*(h**2 - 4*R**2 + y0**2))/(h**2 + y0**2))/(2*h)
     beta = np.arccos((h-yc)/R)
@@ -29,6 +30,19 @@ def getBetaPositive(y0, R):
 def getBeta(y0, R, q):
     return np.where(q<0, getBetaNegative(y0, R), getBetaPositive(y0, R))
 
+def getYentryNegQ(R, beta):
+    yc = R*np.cos(beta)+h
+    y0 = -np.sqrt(R**2 - yc**2) + np.sqrt(-h**2 + R**2 + 2*h*yc - yc**2)
+    return y0
+    
+def getYentryPosQ(R, beta):
+    yc = -R*np.cos(beta)+h
+    y0 = np.sqrt(R**2 - yc**2) - np.sqrt(-h**2 + R**2 + 2*h*yc - yc**2)
+    return y0
+    
+def getYentry(R, q, beta):
+    return np.where(q<0, getYentryNegQ(R, beta), getYentryPosQ(R, beta))
+    
 if __name__ == "__main__":
     
     # user options
@@ -71,21 +85,24 @@ if __name__ == "__main__":
         for branch in branches:
             temp[branch] = temp[branch][cut]
         
-        # track properties
-        # based on the image here https://github.com/kdp-lab/pixelav/blob/ppixelav2v2/ppixelav2_operating_inst.pdf
-        # phi = alpha - pi -> cot(alpha) = cot(phi+pi) = cot(phi) = 1/tan(phi)
-        #cota = 1./np.tan(temp["Track.PhiOuter"]) 
-        # theta = beta - pi -> cot(beta) = cot(theta+pi) = cot(theta) = 1/tan(theta) where theta = arccos(tanh(eta))
-        #cotb = 1./np.tan(np.arccos(np.tanh(temp["Track.EtaOuter"]))) 
-        
-        # Randomly generate the y-entry point between minimum and maximum allowed values
+        # Get particle track radius
+        R = temp["Track.PT"]*5.36/(np.abs(temp["Track.Charge"])*1.60217663*3.8)*1000
+
+        # The maximum and minimum possible entry points with respect to the whole pixel sensor:
         yentrymin=-16/2+0.08125
         yentrymax=16/2-0.08125
-        yentry=np.random.uniform(yentrymin, yentrymax,size=len(temp["Track.PID"]))
 
-        # Determine beta from y-entry
-        R = temp["Track.PT"]*5.36/(np.abs(temp["Track.Charge"])*1.60217663*3.8)*1000
-        beta = getBeta(yentry, R, temp["Track.Charge"])
+        # Using the max and min allowed entry points, get the max and min possible beta values
+        betamin = getBeta(yentrymax, R, temp["Track.Charge"])
+        betamax = getBeta(yentrymin, R, temp["Track.Charge"])
+
+        # Randomly pick a beta within the allowed range
+        beta=np.empty(len(temp["Track.PID"]))
+        for i in range(len(temp["Track.PID"])):
+            beta[i]=np.random.uniform(betamin[i], betamax[i])
+
+        # Get the y entry point
+        yentry=getYentry(R, temp["Track.Charge"], beta)
 
         # Shift yentry to ylocal
         localy=yentry+0.08125
@@ -94,7 +111,7 @@ if __name__ == "__main__":
         gamma0 = np.arctan2(temp["Track.YOuter"],temp["Track.XOuter"])
 
         # Get angle of sensor center with respect to barrel
-        gamma=gamma0+yentry/30
+        gamma=gamma0+np.arctan(yentry/30)
 
         # Define unit vector of track at tracker edge with respect to barrel
         theta=2*np.arctan(np.exp(-temp["Track.EtaOuter"]))
@@ -118,9 +135,10 @@ if __name__ == "__main__":
         cotb = 1./np.tan(2*np.pi-beta)
         cota = 1./np.tan(alpha+np.pi)
 
-        localx = temp["Track.XOuter"] # [mm]
+        localx = np.random.uniform(-8,8-1.05, size=len(temp["Track.PID"])) # [mm]
         
         pT = temp["Track.PT"] # [GeV]
+
         tracks.append([cota, cotb, p, flp, localx, localy, pT])
 
     tracks = np.concatenate(tracks,-1).T
