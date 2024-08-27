@@ -118,7 +118,7 @@ if __name__ == "__main__":
         phi=temp["Track.PhiOuter"]
         x=np.sin(theta)*np.cos(phi)
         y=np.sin(theta)*np.sin(phi)
-        z=np.cos(theta)
+        z=np.cos(theta) 
 
         # Transform into rotated coordinate system (sensor coordinate system sort of)
         xp=x*np.cos(gamma)+y*np.sin(gamma)
