@@ -15,7 +15,6 @@ def run_executable(executable_path, options):
 
 def run_commands(commands):
     for command in commands:
-        print(command)
         if "pixelav" in command[0]:
             subprocess.run(command[1:], cwd=command[0])
         else:
@@ -26,16 +25,29 @@ if __name__ == "__main__":
 
     # user options
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-o", "--outDir", help="Output directory", default="./")
+    parser.add_argument("-o", "--outDir", help="Output directory", default="./test")
     parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=4, type=int)
-    parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default=1000, type=str)
-    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="./pixelav/")
+    parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default='1', type=str)
+    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="~/pixelav/")
+    parser.add_argument("-s", "--semiparametricDir", help="semiparametric directory", default="~/semiparametric")
+
     ops = parser.parse_args()
 
     # get absolute path and check if outdir exists
     outDir = os.path.abspath(ops.outDir)
     if not os.path.isdir(outDir):
         os.makedirs(outDir)
+    
+    else:
+         # Empty folder
+        files = os.listdir(outDir)
+        for f in files:
+            if os.path.isfile(f"{outDir}/{f}"):
+                os.remove(f"{outDir}/{f}")
+    
+
+    pixelAVdir = os.path.expanduser(ops.pixelAVdir)
+    semiparametricDir = os.path.expanduser(ops.semiparametricDir)
 
     # ./minbias.exe <outFileName> <maxEvents> <pTHatMin> <pTHatMax>
     path_to_executable = "./bin/minbias.exe"
@@ -48,9 +60,11 @@ if __name__ == "__main__":
         pTHatMin = round(pTHatMin, 3)
         pTHatMax = round(pTHatMax, 3)
         # format
-        outFileName = os.path.join(outDir, f"minbias_{pTHatMin:.2f}_{pTHatMax:.2f}_GeV")
-        # options_list.append([outFileName, maxEvents, str(pTHatMin), str(pTHatMax)])
-        # print(options_list[-1])
+        tag = f"minbias_{pTHatMin:.2f}_{pTHatMax:.2f}_GeV"
+        outFileName = f"{outDir}/{tag}"
+        if pTHatMin != 0 and pTHatMin != 1.9:
+            print(f"skipping{tag}")
+            continue
 
         # pythia
         pythia = ["./bin/minbias.exe", outFileName, ops.maxEvents, str(pTHatMin), str(pTHatMax)]
@@ -66,10 +80,13 @@ if __name__ == "__main__":
 
         # pixelAV
         # ../../pixelav/bin/ppixelav2_list_trkpy_n_2f.exe 1 outdir/cmsMatch/11/minbias_0.40_0.50_GeV.txt temp/minbias_0.40_0.50_GeV.out temp/seedfile
-        pixelAV = [ops.pixelAVdir, "./bin/ppixelav2_list_trkpy_n_2f.exe", "1", f"{outFileName}.txt", f"{outFileName}.out", f"{outFileName}_seed"]
+        pixelAV = [pixelAVdir, "./bin/ppixelav2_list_trkpy_n_2f.exe", "1", f"{outFileName}.txt", f"{outFileName}.out", f"{outFileName}_seed"]
         
+        # Write parquet file
+        parquet = ["python3", f"{semiparametricDir}/processing/datagen.py", "-f", f"{tag}.out", "-t", tag, "-d", outDir]
+
         # commands
-        commands.append([(pythia, delphes, trackList, pixelAV),]) # weird formatting is because pool expects a tuple at input
+        commands.append([(pythia, delphes, trackList, pixelAV, parquet,),]) # weird formatting is because pool expects a tuple at input 
         
     # List of CPU cores to use for parallel execution
     num_cores = multiprocessing.cpu_count() if ops.ncpu == -1 else ops.ncpu
@@ -78,8 +95,6 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(num_cores)
     
     # Launch the executable N times in parallel with different options
-    # pool.starmap(run_executable, [(path_to_executable, options) for options in options_list])
-    print(commands) # Anthony you are here need to make the multiprocess work with delphes tied in
     pool.starmap(run_commands, commands)
     
     # Close the pool of processes

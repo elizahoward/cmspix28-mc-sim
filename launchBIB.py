@@ -26,14 +26,15 @@ if __name__ == "__main__":
 
     # user options
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-o", "--outDir", help="Output directory", default="./output")
+    parser.add_argument("-o", "--outDir", help="Output directory", default="./BIBoutput")
     parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=4, type=int)
-    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="./pixelav/")
+    parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="~/pixelav/")
     parser.add_argument("-s", "--semiparametricDir", help="semiparametric directory", default="~/semiparametric")
     ops = parser.parse_args()
 
     # get absolute path for semiparametric directory
     semiparametricDir = os.path.expanduser(ops.semiparametricDir)
+    pixelAVdir = os.path.expanduser(ops.pixelAVdir)
 
     # get absolute path and check if outdir exists
     outDir = os.path.abspath(ops.outDir)
@@ -42,14 +43,12 @@ if __name__ == "__main__":
 
     commands = []
 
-    BIBoutput = "/home/elizahoward/cmspix28-mc-sim/BIBtest/output.txt"
+    BIBoutput = "/home/elizahoward/produceSmartPixMuC/tracklist.txt"
     tag = "BIBtracks"
     outFileName = f"{outDir}/{tag}"
 
-    BIBtracklist = ["python3", "utils/BIBtracklist.py", "-i", BIBoutput, "-o", f"{outFileName}.txt"]
-    # pixelAV
     # ../../pixelav/bin/ppixelav2_list_trkpy_n_2f.exe 1 outdir/cmsMatch/11/minbias_0.40_0.50_GeV.txt temp/minbias_0.40_0.50_GeV.out temp/seedfile
-    pixelAV = [ops.pixelAVdir, "./bin/ppixelav2_list_trkpy_n_2f.exe", "1", f"{outFileName}.txt", f"{outFileName}.out", f"{outFileName}_seed"]
+    pixelAV = [pixelAVdir, "./bin/ppixelav2_list_trkpy_n_2f.exe", "1", BIBoutput, f"{outFileName}.out", f"{outFileName}_seed"]
         
     # Write parquet file
     parquet = ["python3", f"{semiparametricDir}/processing/datagen.py", "-f", f"{tag}.out", "-t", tag, "-d", outDir]
@@ -58,7 +57,7 @@ if __name__ == "__main__":
     makePlots = ["python3", f"{semiparametricDir}/plotting/makePlots.py", "-t", tag, "-d", outDir]
 
     # commands
-    commands.append([(BIBtracklist, pixelAV, parquet, makePlots),]) # weird formatting is because pool expects a tuple at input
+    commands.append([(pixelAV, parquet),]) # weird formatting is because pool expects a tuple at input
         
     # List of CPU cores to use for parallel execution
     num_cores = multiprocessing.cpu_count() if ops.ncpu == -1 else ops.ncpu
