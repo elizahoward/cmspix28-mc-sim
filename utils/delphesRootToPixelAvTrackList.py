@@ -73,7 +73,7 @@ def getGamma(xOuter, yOuter, xc, yc, R, q):
     deltaGamma=np.arctan2(y,x)
     gamma = gamma0-deltaGamma
     return gamma
-
+"""
 def getInfo(temp, yentry, beta):
     # Get angle of hit location with respect to barrel
     gamma0 = np.arctan2(temp["Track.YOuter"],temp["Track.XOuter"])
@@ -105,10 +105,10 @@ def getInfo(temp, yentry, beta):
     localx = np.random.uniform(-8,8-1.05, size=len(temp["Track.PID"])) # [mm]
     
     return cota, cotb, localx
+"""
 
-
-def assumeCircle(temp):
-    # Get particle track radius
+def ArrangeSensor(temp,extra=False):
+    # Get particle track radius in mm
     R = temp["Track.PT"]*5.36/(np.abs(temp["Track.Charge"])*1.60217663*3.8)*1000
 
     # The maximum and minimum possible entry points with respect to the whole pixel sensor:
@@ -127,14 +127,6 @@ def assumeCircle(temp):
     # Get the y entry point
     yentry, xc, yc = getYentry(R, temp["Track.Charge"], beta)
 
-    # Shift yentry to ylocal
-    localy=yentry+0.08125
-
-    # Round ylocal to the nearest pixel
-    localy /= 0.0125
-    localy = np.rint(localy)
-    localy *= 0.0125
-
     gamma = getGamma(temp["Track.XOuter"],temp["Track.YOuter"], xc, yc, R, temp["Track.Charge"])
 
     # Define unit vector of track at tracker edge with respect to barrel
@@ -149,6 +141,24 @@ def assumeCircle(temp):
     yp=x*np.sin(np.pi/2-gamma)+y*np.cos(np.pi/2-gamma)
 
     alpha=np.arctan2(yp,z)
+    if extra:
+        # Rotate circle center by gamma:
+        xc_actual=xc*np.cos(gamma)-yc*np.sin(gamma)
+        yc_actual=xc*np.sin(gamma)+yc*np.cos(gamma)
+        return alpha, beta, yentry, gamma, xc, yc, xc_actual, yc_actual, R, x, y, z
+    else:
+        return alpha, beta, yentry, gamma
+
+def getInfo(temp):
+    alpha, beta, yentry, gamma = ArrangeSensor(temp)
+
+    # Shift yentry to ylocal
+    localy=yentry+0.08125
+
+    # Round ylocal to the nearest pixel
+    localy /= 0.0125
+    localy = np.rint(localy)
+    localy *= 0.0125
 
     if ops.flp == 0:
         # For the unflipped geometry, we must adjust alpha and beta 
@@ -169,6 +179,7 @@ def assumeCircle(temp):
     return cota, cotb, localx, localy
 
 
+"""
 def assumeStraight(temp):
     # Randomly generate beta between minimum and maximum allowed values
     betamin = 1.31272
@@ -195,7 +206,7 @@ def originalMethod(temp):
     localy = temp["Track.YOuter"] # [mm]
 
     return cota, cotb, localx, localy
-    
+"""
 
 if __name__ == "__main__":
     
@@ -252,15 +263,10 @@ if __name__ == "__main__":
         
         pT = temp["Track.PT"] # [GeV]
 
-        if ops.pathAssumption == 0:
-            cota, cotb, localx, localy = assumeCircle(temp)
-        elif ops.pathAssumption == 1:
-            cota, cotb, localx, localy = assumeStraight(temp)
-        else:
-            cota, cotb, localx, localy = originalMethod(temp)
+        cota, cotb, localx, localy = getInfo(temp)
 
         pid = temp["Track.PID"]
-
+        
         tracks.append([cota, cotb, p, flp, localx, localy, pT, pid])
 
     tracks = np.concatenate(tracks,-1).T
