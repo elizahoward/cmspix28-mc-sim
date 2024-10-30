@@ -25,11 +25,10 @@ if __name__ == "__main__":
 
     # user options
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-o", "--outDir", help="Output directory", default="./test")
-    parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=4, type=int)
-    parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default='1', type=str)
+    parser.add_argument("-o", "--outDir", help="Output directory", default="./TestDataUnflippedVertexCut")
+    parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=10, type=int)
+    parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default='200', type=str)
     parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="~/pixelav/")
-    parser.add_argument("-s", "--semiparametricDir", help="semiparametric directory", default="~/semiparametric")
 
     ops = parser.parse_args()
 
@@ -37,14 +36,12 @@ if __name__ == "__main__":
     outDir = os.path.abspath(ops.outDir)
     if not os.path.isdir(outDir):
         os.makedirs(outDir)
-    
     else:
          # Empty folder
         files = os.listdir(outDir)
         for f in files:
             if os.path.isfile(f"{outDir}/{f}"):
                 os.remove(f"{outDir}/{f}")
-    
 
     pixelAVdir = os.path.expanduser(ops.pixelAVdir)
     semiparametricDir = os.path.expanduser(ops.semiparametricDir)
@@ -62,7 +59,7 @@ if __name__ == "__main__":
         # format
         tag = f"minbias_{pTHatMin:.2f}_{pTHatMax:.2f}_GeV"
         outFileName = f"{outDir}/{tag}"
-        if pTHatMin != 0 and pTHatMin != 1.9:
+        if pTHatMin != 1.9 and pTHatMin != 0:
             print(f"skipping{tag}")
             continue
 
@@ -83,7 +80,7 @@ if __name__ == "__main__":
         pixelAV = [pixelAVdir, "./bin/ppixelav2_list_trkpy_n_2f.exe", "1", f"{outFileName}.txt", f"{outFileName}.out", f"{outFileName}_seed"]
         
         # Write parquet file
-        parquet = ["python3", f"{semiparametricDir}/processing/datagen.py", "-f", f"{tag}.out", "-t", tag, "-d", outDir]
+        parquet = ["python3", "./processing/datagen.py", "-f", f"{tag}.out", "-t", tag, "-d", outDir]
 
         # commands
         commands.append([(pythia, delphes, trackList, pixelAV, parquet,),]) # weird formatting is because pool expects a tuple at input 
