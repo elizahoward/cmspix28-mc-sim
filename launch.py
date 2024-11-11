@@ -59,6 +59,8 @@ if __name__ == "__main__":
         # format
         tag = f"minbias_{pTHatMin:.2f}_{pTHatMax:.2f}_GeV"
         outFileName = f"{outDir}/{tag}"
+        
+        # Comment this out, if you want all ranges
         if pTHatMin != 1.9 and pTHatMin != 0:
             print(f"skipping{tag}")
             continue
