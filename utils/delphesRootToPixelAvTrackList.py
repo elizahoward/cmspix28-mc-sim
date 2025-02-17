@@ -106,9 +106,9 @@ def ArrangeSensor(temp,extra=False):
 
     # Transform into rotated coordinate system (sensor coordinate system sort of)
     # xp=x*np.cos(np.pi/2-gamma)-y*np.sin(np.pi/2-gamma)
-    #yp=x*np.sin(np.pi/2-gamma)+y*np.cos(np.pi/2-gamma)
+    yp=x*np.sin(np.pi/2-gamma)+y*np.cos(np.pi/2-gamma)
 
-    alpha=theta #np.arctan2(yp,z)
+    alpha=np.arctan2(yp,z)
     if extra:
         # Rotate circle center by gamma:
         xc_actual=xc*np.cos(gamma)-yc*np.sin(gamma)
@@ -173,9 +173,10 @@ if __name__ == "__main__":
     tree = "Delphes"
     delphes_track_pt = []
     delphes_particle_pt = []
-    branches = ["Track.PID", "Track.X", "Track.Y", "Track.Charge", "Track.PT", "Track.P", "Track.EtaOuter", "Track.PhiOuter", "Track.XOuter", "Track.YOuter"]
+    branches = ["Track.PID", "Track.X", "Track.Y", "Track.ZOuter", "Track.Charge", "Track.PT", "Track.P", "Track.EtaOuter", "Track.PhiOuter", "Track.XOuter", "Track.YOuter"]
     pionPID = 211 # plus/minus
     electronPID = 11 # plus/minus
+    muonPID = 13 # plus/minus
 
     # for array in uproot.iterate(f"{files}:{tree}", branches):
     with uproot.open(ops.inFileName) as f:
@@ -185,7 +186,10 @@ if __name__ == "__main__":
             temp[branch] = np.array(ak.flatten(f[tree][branch].array()))
         
         # selection
-        cut = abs(temp["Track.PID"])==pionPID 
+        cut1 = abs(temp["Track.PID"])==pionPID 
+        cut2 = abs(temp["Track.PID"])==electronPID
+        cut3 = abs(temp["Track.PID"])==muonPID 
+        cut = cut1 | cut2 | cut3
         d = np.sqrt(temp["Track.X"]**2+temp["Track.Y"]**2)
         cut = cut & (d <= 3)
 
@@ -206,8 +210,10 @@ if __name__ == "__main__":
         cota, cotb, localx, localy = getInfo(temp)
 
         pid = temp["Track.PID"]
+
+        hit_z = np.abs(temp["Track.ZOuter"])
         
-        tracks.append([cota, cotb, p, flp, localx, localy, pT, pid])
+        tracks.append([cota, cotb, p, flp, localx, localy, pT, hit_z, pid])
 
     tracks = np.concatenate(tracks,-1).T
     print("Tracks shape: ", tracks.shape)

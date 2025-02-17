@@ -25,9 +25,9 @@ if __name__ == "__main__":
 
     # user options
     parser = argparse.ArgumentParser(usage=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-o", "--outDir", help="Output directory", default="./TestDataUnflippedVertexCut")
-    parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=10, type=int)
-    parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default='200', type=str)
+    parser.add_argument("-o", "--outDir", help="Output directory", default="./PythiaSim")
+    parser.add_argument("-j", "--ncpu", help="Number of cores to use", default=35, type=int)
+    parser.add_argument("-n", "--maxEvents", help="Number of events per bin", default='100', type=str)
     parser.add_argument("-p", "--pixelAVdir", help="pixelAV directory", default="~/pixelav/")
 
     ops = parser.parse_args()
@@ -44,15 +44,14 @@ if __name__ == "__main__":
                 os.remove(f"{outDir}/{f}")
 
     pixelAVdir = os.path.expanduser(ops.pixelAVdir)
-    semiparametricDir = os.path.expanduser(ops.semiparametricDir)
 
     # ./minbias.exe <outFileName> <maxEvents> <pTHatMin> <pTHatMax>
     path_to_executable = "./bin/minbias.exe"
-    pt = np.linspace(0,2,21)
+    #pt = np.linspace(0,2,21)
     # maxEvents = str(1000)
     # options_list = []
     commands = []
-    for pTHatMin, pTHatMax in zip(pt[0:-1],pt[1:]):
+    for pTHatMin, pTHatMax in zip([0,2], [2,5]):#zip(pt[0:-1],pt[1:]):
         # fix numpy rounding
         pTHatMin = round(pTHatMin, 3)
         pTHatMax = round(pTHatMax, 3)
@@ -61,9 +60,9 @@ if __name__ == "__main__":
         outFileName = f"{outDir}/{tag}"
         
         # Comment this out, if you want all ranges
-        if pTHatMin != 1.9 and pTHatMin != 0:
+        """if pTHatMin != 1.9 and pTHatMin != 0:
             print(f"skipping{tag}")
-            continue
+            continue"""
 
         # pythia
         pythia = ["./bin/minbias.exe", outFileName, ops.maxEvents, str(pTHatMin), str(pTHatMax)]
