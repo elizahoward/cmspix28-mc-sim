@@ -1,6 +1,15 @@
 # folders
 bin/
 temp/
+**/__pycache__
+utils/__pycache__
 
 # types
 *.hepmc
+*_seed
+*.out
+*.txt
+*.root
+
+# python
+*checkpoint.py
